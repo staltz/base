@@ -9,7 +9,6 @@ export type StreamSubscriber = (stream: any, observer: Observer) => void;
 export interface StreamAdapter {
   makeHoldSubject: () => any;
   dispose: (sinks: any, sinkProxies: any, sources: any) => void;
-  replicate: (stream: any, observer: Observer) => void;
   isValidStream: (stream: any) => boolean;
   subscribeToStream: StreamSubscriber;
   adapt: (originStream: any, subscribeToOriginStream: StreamSubscriber) => any;
@@ -24,7 +23,7 @@ function makeSinkProxies(drivers: any, CycleStreamAdapter: StreamAdapter): any {
 
       const stream = driverStreamAdapter.adapt(
         holdSubject.stream,
-        driverStreamAdapter.subscribeToStream
+        CycleStreamAdapter.subscribeToStream
       );
 
       sinkProxies[name] = {
@@ -55,7 +54,7 @@ function replicateMany(sinks: any, sinkProxies: any, CycleStreamAdapter: StreamA
   Object.keys(sinks)
     .filter(name => sinkProxies[name])
     .forEach(name => {
-      CycleStreamAdapter.replicate(sinks[name], sinkProxies[name].observer);
+      CycleStreamAdapter.subscribeToStream(sinks[name], sinkProxies[name].observer);
     });
 }
 
