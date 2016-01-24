@@ -23,7 +23,7 @@ function makeSinkProxies(drivers: any, CycleStreamAdapter: StreamAdapter): any {
 
       const stream = driverStreamAdapter.adapt(
         holdSubject.stream,
-        driverStreamAdapter.subscribeToStream
+        CycleStreamAdapter.subscribeToStream
       );
 
       sinkProxies[name] = {
