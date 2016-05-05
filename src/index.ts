@@ -116,7 +116,7 @@ function replicateMany(sinks: any,
 function disposeSources<Sources>(sources: Sources) {
   for (let k in sources) {
     if (sources.hasOwnProperty(k) && sources[k]
-      && typeof sources[k].dispose === 'function') {      
+      && typeof sources[k].dispose === 'function') {
       sources[k].dispose();
     }
   }
