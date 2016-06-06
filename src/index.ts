@@ -1,26 +1,26 @@
-export interface Observer {
-  next: (x: any) => void;
+export interface Observer<T> {
+  next: (x: T) => void;
   error: (e: any) => void;
-  complete: (c?: any) => void;
+  complete: (c?: T) => void;
 }
 
-export interface Subject {
+export interface Subject<T> {
   stream: any;
-  observer: Observer;
+  observer: Observer<T>;
 }
 
 export interface SinkProxies {
-  [driverName: string]: Subject;
+  [driverName: string]: Subject<any>;
 }
 
 export type DisposeFunction = () => void
 
-export type StreamSubscribe = (stream: any, observer: Observer) => DisposeFunction | void
+export type StreamSubscribe = <T>(stream: any, observer: Observer<T>) => DisposeFunction | void
 
 export interface StreamAdapter {
-  adapt: (originStream: any, originStreamSubscribe: StreamSubscribe) => any;
-  remember: (stream: any) => any;
-  makeSubject: () => Subject;
+  adapt: <T>(originStream: any, originStreamSubscribe: StreamSubscribe) => any;
+  remember: <T>(stream: any) => any;
+  makeSubject: <T>() => Subject<T>;
   isValidStream: (stream: any) => boolean;
   streamSubscribe: StreamSubscribe;
 }
