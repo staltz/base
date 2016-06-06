@@ -19,7 +19,7 @@ export type StreamSubscribe = (stream: any, observer: Observer) => DisposeFuncti
 
 export interface StreamAdapter {
   adapt: (originStream: any, originStreamSubscribe: StreamSubscribe) => any;
-  dispose: (sinks: any, sinkProxies: SinkProxies, sources: any) => void;
+  remember: (stream: any) => any;
   makeSubject: () => Subject;
   isValidStream: (stream: any) => boolean;
   streamSubscribe: StreamSubscribe;
@@ -47,6 +47,15 @@ export interface CycleExecution<Sources, Sinks> {
 export interface CycleSetup {
   (main: (sources: any) => any, drivers: {[name: string]: Function}): CycleExecution<any, any>;
   run: (main: (sources: any) => any, drivers: {[name: string]: Function}) => DisposeFunction;
+}
+
+function logToConsoleError(err: any) {
+  const target = err.stack || err;
+  if (console && console.error) {
+    console.error(target);
+  } else if (console && console.log) {
+    console.log(target);
+  }
 }
 
 function makeSinkProxies(drivers: DriversDefinition,
@@ -104,7 +113,16 @@ function replicateMany(sinks: any,
   const results: Array<DisposeFunction | void> = Object.keys(sinks)
     .filter(name => !!sinkProxies[name])
     .map(name =>
-      streamAdapter.streamSubscribe(sinks[name], sinkProxies[name].observer)
+      streamAdapter.streamSubscribe(sinks[name], {
+        next(x: any) { sinkProxies[name].observer.next(x); },
+        error(err: any) {
+          logToConsoleError(err);
+          sinkProxies[name].observer.error(err);
+        },
+        complete(x?: any) {
+          sinkProxies[name].observer.complete(x);
+        }
+      })
     );
   const disposeFunctions: Array<DisposeFunction> = <Array<DisposeFunction>> results
     .filter(dispose => typeof dispose === 'function');
@@ -154,7 +172,6 @@ function Cycle<Sources, Sinks>(main: (sources: Sources) => Sinks,
   const run: () => DisposeFunction = () => {
     const disposeReplication = replicateMany(sinks, sinkProxies, streamAdapter);
     return () => {
-      streamAdapter.dispose(sinks, sinkProxies, sources);
       disposeSources(sources);
       disposeReplication();
     };
