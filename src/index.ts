@@ -23,6 +23,7 @@ export interface StreamAdapter {
   makeSubject: <T>() => Subject<T>;
   isValidStream: (stream: any) => boolean;
   streamSubscribe: StreamSubscribe;
+  cast: <T>(stream: any) => any;
 }
 
 export interface DriverFunction {
